@@ -1,6 +1,7 @@
 defmodule ArtemProp.MixProject do
   use Mix.Project
 
+  @url "https://github.com/maartenvanvliet/absinthe_streamdata"
   def project do
     [
       app: :absinthe_streamdata,
@@ -9,7 +10,18 @@ defmodule ArtemProp.MixProject do
       elixir: "~> 1.11",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      description: "Create Graphql StreamData generator from an Absinthe schema",
+      package: [
+        maintainers: ["Maarten van Vliet"],
+        licenses: ["MIT"],
+        links: %{"GitHub" => @url},
+        files: ~w(LICENSE README.md lib mix.exs .formatter.exs)
+      ],
+      docs: [
+        canonical: "http://hexdocs.pm/absinthe_streamdata",
+        source_url: @url
+      ]
     ]
   end
 
