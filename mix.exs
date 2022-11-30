@@ -41,7 +41,7 @@ defmodule ArtemProp.MixProject do
       {:absinthe, "~> 1.6"},
       {:stream_data, "~> 0.5"},
       {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.23", only: [:dev, :test]}
+      {:ex_doc, "~> 0.29", only: [:dev, :test]}
     ]
   end
 end
