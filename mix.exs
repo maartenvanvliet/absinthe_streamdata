@@ -6,7 +6,7 @@ defmodule ArtemProp.MixProject do
     [
       app: :absinthe_streamdata,
       consolidate_protocols: false,
-      version: "0.1.2",
+      version: "0.1.3",
       elixir: "~> 1.11",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
