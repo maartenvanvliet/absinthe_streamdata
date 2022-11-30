@@ -193,8 +193,16 @@ defmodule Absinthe.StreamData do
     Enum.reduce(type.fields, 0, fn {_, field}, acc -> complexity(field, depth) + acc end)
   end
 
-  defp complexity(type, _depth) do
-    max(Enum.count(type.args), 1)
+  defp complexity(%Absinthe.Type.Interface{} = type, depth) do
+    1
+  end
+
+  defp complexity(%{args: args}, _depth) do
+    max(Enum.count(args), 1)
+  end
+
+  defp complexity(_type, _depth) do
+    1
   end
 
   defp build_selections(%Absinthe.Type.Union{} = type, schema, depth) do
