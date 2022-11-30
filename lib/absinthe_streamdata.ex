@@ -177,11 +177,11 @@ defmodule Absinthe.StreamData do
     data |> StreamData.fixed_map() |> StreamData.map(&struct!(struct, &1))
   end
 
-  defp build_selection_set(%{fields: _} = type, schema, depth, %{max_depth: max_depth})
+  defp build_selection_set(%{fields: _}, _schema, depth, %{max_depth: max_depth})
        when depth >= max_depth do
     struct_of(Absinthe.Language.SelectionSet, %{
       loc: StreamData.constant(nil),
-      selections: []
+      selections: StreamData.constant([])
     })
   end
 
@@ -202,7 +202,7 @@ defmodule Absinthe.StreamData do
     Enum.reduce(type.fields, 0, fn {_, field}, acc -> complexity(field, depth) + acc end)
   end
 
-  defp complexity(%Absinthe.Type.Interface{} = type, depth) do
+  defp complexity(%Absinthe.Type.Interface{} = _type, _depth) do
     1
   end
 
