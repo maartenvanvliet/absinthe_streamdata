@@ -39,7 +39,8 @@ defmodule Absinthe.StreamData do
     |> StreamData.member_of()
   end
 
-  def document_of(schema, operation_type, name) do
+  def document_of(schema, operation_type, name, opts \\ [max_depth: 5]) do
+    opts = Map.new(opts)
     operation_fields = find_type(schema, operation_type)
 
     {_name, field} =
@@ -58,7 +59,7 @@ defmodule Absinthe.StreamData do
                   struct_of(
                     Absinthe.Language.SelectionSet,
                     %{
-                      selections: root_operation(field, schema)
+                      selections: root_operation(field, schema, opts)
                     }
                   )
               }),
@@ -92,7 +93,7 @@ defmodule Absinthe.StreamData do
     Absinthe.Schema.types(schema) |> Enum.find(fn a -> a.identifier == type end)
   end
 
-  defp root_operation(field, schema) do
+  defp root_operation(field, schema, opts) do
     struct_of(
       Absinthe.Language.Field,
       %{
@@ -102,7 +103,7 @@ defmodule Absinthe.StreamData do
         selection_set:
           schema
           |> find_type(Absinthe.Type.unwrap(field.type))
-          |> build_selection_set(schema, 0)
+          |> build_selection_set(schema, 0, opts)
       }
     )
     |> StreamData.list_of(length: 1)
@@ -176,14 +177,22 @@ defmodule Absinthe.StreamData do
     data |> StreamData.fixed_map() |> StreamData.map(&struct!(struct, &1))
   end
 
-  defp build_selection_set(%{fields: _} = type, schema, depth) do
+  defp build_selection_set(%{fields: _} = type, schema, depth, %{max_depth: max_depth})
+       when depth >= max_depth do
     struct_of(Absinthe.Language.SelectionSet, %{
       loc: StreamData.constant(nil),
-      selections: build_selections(type, schema, depth)
+      selections: []
     })
   end
 
-  defp build_selection_set(_t, _schema, _) do
+  defp build_selection_set(%{fields: _} = type, schema, depth, opts) do
+    struct_of(Absinthe.Language.SelectionSet, %{
+      loc: StreamData.constant(nil),
+      selections: build_selections(type, schema, depth, opts)
+    })
+  end
+
+  defp build_selection_set(_t, _schema, _, _) do
     StreamData.constant(nil)
   end
 
@@ -205,7 +214,7 @@ defmodule Absinthe.StreamData do
     1
   end
 
-  defp build_selections(%Absinthe.Type.Union{} = type, schema, depth) do
+  defp build_selections(%Absinthe.Type.Union{} = type, schema, depth, opts) do
     type.types
     |> Enum.map(fn type ->
       type = find_type(schema, type)
@@ -214,7 +223,7 @@ defmodule Absinthe.StreamData do
         type_condition:
           StreamData.constant(%Absinthe.Language.NamedType{loc: nil, name: type.name}),
         loc: StreamData.constant(nil),
-        selection_set: build_selection_set(type, schema, depth + 1)
+        selection_set: build_selection_set(type, schema, depth + 1, opts)
       })
     end)
     |> StreamData.one_of()
@@ -222,7 +231,7 @@ defmodule Absinthe.StreamData do
     |> StreamData.list_of(min_length: 1)
   end
 
-  defp build_selections(type, schema, depth) do
+  defp build_selections(type, schema, depth, opts) do
     max_length = complexity(type, depth)
 
     type.fields
@@ -235,7 +244,7 @@ defmodule Absinthe.StreamData do
         name: StreamData.constant(field.name),
         selection_set:
           find_type(schema, Absinthe.Type.unwrap(field.type))
-          |> build_selection_set(schema, depth + 1)
+          |> build_selection_set(schema, depth + 1, opts)
       })
     end)
     |> StreamData.one_of()

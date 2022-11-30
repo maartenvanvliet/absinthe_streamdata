@@ -100,6 +100,10 @@ defmodule Absinthe.StreamData.Variables do
     to_generator(schema, name, type.of_type, {type_mapper, opts}) |> type_mapper.non_null(name)
   end
 
+  def to_generator(schema, name, %Absinthe.Type.List{} = type, {type_mapper, opts}) do
+    to_generator(schema, name, type.of_type, {type_mapper, opts}) |> type_mapper.list_of(name)
+  end
+
   def to_generator(schema, name, type, {type_mapper, opts}) when is_atom(type) do
     type = Absinthe.Schema.lookup_type(schema, type)
 
