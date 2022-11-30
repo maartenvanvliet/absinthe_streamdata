@@ -27,6 +27,42 @@ def deps do
 end
 ```
 
+## Example
+
+```
+defmodule Absinthe.StreamDataTest do
+  use MyApp.DataCase, async: false
+  use ExUnitProperties
+
+  defmodule TypeMapper do
+    use Absinthe.StreamData.TypeMapper
+
+    def from_type(%{name: "CustomScalar"}, schema, name, type_mapper) do
+      StreamData.constant("bogus")
+    end
+
+    def from_type(type, schema, name, type_mapper) do
+      Absinthe.StreamData.DefaultTypeMapper.from_type(type, schema, name, type_mapper)
+    end
+  end
+
+  property "runs all docs" do
+    schema = Your.Schema
+
+    check all operation <- Absinthe.StreamData.operation_of(schema),
+              field <- Absinthe.StreamData.field_of(schema, operation),
+              doc <-
+                Absinthe.StreamData.document_of(schema, operation, field),
+              vars <- Absinthe.StreamData.variables_of(schema, doc, {TypeMapper, []}),
+              runs <- Absinthe.StreamData.execution_of(schema, doc, variables: vars) do
+      {:ok, blueprint} = runs
+
+      assert blueprint.errors == []
+    end
+  end
+end
+```
+
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/absinthe_streamdata](https://hexdocs.pm/absinthe_streamdata).
