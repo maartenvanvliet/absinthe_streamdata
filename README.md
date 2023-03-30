@@ -29,7 +29,7 @@ end
 
 ## Example
 
-```
+```elixir
 defmodule Absinthe.StreamDataTest do
   use MyApp.DataCase, async: false
   use ExUnitProperties
